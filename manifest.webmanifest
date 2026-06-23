@@ -1,0 +1,19 @@
+{
+  "name": "習慣トラッカー",
+  "short_name": "習慣",
+  "description": "習慣の記録・月ごとの目標・3 Good Things",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f4f2ee",
+  "theme_color": "#7CB89A",
+  "lang": "ja",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
