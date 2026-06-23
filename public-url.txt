@@ -1,4 +1,9 @@
 ﻿https://miku-yo.github.io/habit-tracker/
 
-※ 公開前に GitHub で Pages を「GitHub Actions」に設定してください。
-  https://github.com/miku-yo/habit-tracker/settings/pages
+【GitHub Pages 設定（1回だけ）】
+1. https://github.com/miku-yo/habit-tracker/settings/pages を開く
+2. Build and deployment > Source を「Deploy from a branch」にする
+3. Branch を「gh-pages」、フォルダを「/ (root)」にする
+4. Save 後、2〜3分待つ
+
+※ Actions のデプロイが成功すると gh-pages ブランチが自動作成されます。
