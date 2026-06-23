@@ -613,6 +613,10 @@
 
     .good-thing-input::placeholder { color: #aaa; }
 
+    .mobile-hint[hidden] {
+      display: none !important;
+    }
+
     .mobile-hint {
       display: flex;
       align-items: flex-start;
@@ -680,7 +684,8 @@
 
       .add-form { flex-direction: column; }
       .add-form input[type="text"] { min-width: 0; width: 100%; }
-      .color-picker { justify-content: center; }
+      .color-picker { justify-content: center; width: 100%; gap: 10px; }
+      .color-swatch { width: 28px; height: 28px; }
       .btn-primary { width: 100%; }
 
       .section-head {
@@ -783,7 +788,7 @@
     const DAY_LABELS = ["日", "月", "火", "水", "木", "金", "土"];
     const PRESET_COLORS = [
       "#8ECBB8", "#9EC5E8", "#F2B5D0", "#C5B3E8", "#F5CCAA",
-      "#F2E2A0", "#F5B8B8", "#A8D4A0", "#A8D8E8", "#E8B8D8",
+      "#F2E2A0", "#F5B8B8", "#A8D4A0", "#A8D8E8",
     ];
 
     let selectedColor = PRESET_COLORS[0];
@@ -1495,8 +1500,10 @@
         hint.hidden = false;
       }
 
-      dismiss?.addEventListener("click", () => {
+      dismiss?.addEventListener("click", (e) => {
+        e.preventDefault();
         hint.hidden = true;
+        hint.style.display = "none";
         localStorage.setItem("habit-tracker-hint-dismissed", "1");
       });
     }
