@@ -181,6 +181,128 @@
       min-width: 180px;
     }
 
+    .bottom-toolbar {
+      margin-top: 28px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border);
+    }
+
+    .add-habit-section {
+      margin-bottom: 28px;
+    }
+
+    .add-habit-section .section-title {
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+
+    /* --- 3 Good Things 履歴 --- */
+    .good-things-history {
+      margin-top: 16px;
+      padding-top: 14px;
+      border-top: 1px solid var(--border);
+    }
+
+    .history-heading {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .history-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      max-height: 220px;
+      overflow-y: auto;
+    }
+
+    .history-item {
+      display: block;
+      width: 100%;
+      text-align: left;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--bg);
+      cursor: pointer;
+      font-family: var(--font);
+    }
+
+    .history-item:hover { background: var(--accent-soft); }
+
+    .history-item.active {
+      border-color: var(--accent);
+      background: var(--accent-soft);
+    }
+
+    .history-date {
+      display: block;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 2px;
+    }
+
+    .history-preview {
+      display: block;
+      font-size: 0.75rem;
+      color: var(--muted);
+      line-height: 1.4;
+      word-break: break-word;
+    }
+
+    .history-empty {
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+
+    /* --- リマインド --- */
+    .reminder-panel {
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .reminder-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .reminder-toggle {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.9rem;
+      cursor: pointer;
+    }
+
+    .reminder-toggle input {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--accent);
+    }
+
+    .reminder-time {
+      padding: 8px 10px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 16px;
+      font-family: var(--font);
+      background: var(--surface);
+    }
+
+    .reminder-status {
+      font-size: 0.75rem;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
     .btn-today {
       width: auto;
       height: 36px;
@@ -733,28 +855,44 @@
       </div>
     </header>
 
-    <div class="data-toolbar">
-      <button type="button" class="btn-secondary" id="exportBtn">バックアップ</button>
-      <button type="button" class="btn-secondary" id="importBtn">復元</button>
-      <input type="file" id="importFile" accept="application/json,.json" />
-      <span class="data-toolbar-hint">端末を替えるときはバックアップ→復元でデータを移せます</span>
-    </div>
-
     <div class="summary-bar" id="summaryBar"></div>
-
-    <form class="add-form" id="addForm">
-      <input type="text" id="habitName" placeholder="新しい習慣（例：朝のストレッチ）" maxlength="40" required />
-      <div class="color-picker" id="colorPicker" role="radiogroup" aria-label="習慣の色"></div>
-      <button type="submit" class="btn btn-primary">追加</button>
-    </form>
 
     <div id="habitList"></div>
 
-    <footer>データはこのブラウザに保存されます（localStorage）・v1.2</footer>
+    <section class="section">
+      <div class="section-head">
+        <div>
+          <div class="section-title">リマインド</div>
+          <div class="section-desc">毎日、決まった時間に通知します</div>
+        </div>
+      </div>
+      <div class="panel reminder-panel">
+        <label class="reminder-toggle">
+          <input type="checkbox" id="reminderEnabled" />
+          通知をオンにする
+        </label>
+        <div class="reminder-row">
+          <label for="reminderTime">時刻</label>
+          <input type="time" id="reminderTime" class="reminder-time" value="19:00" />
+          <button type="button" class="btn-secondary" id="reminderTest">テスト</button>
+        </div>
+        <p class="reminder-status" id="reminderStatus"></p>
+      </div>
+    </section>
+
+    <div class="data-toolbar bottom-toolbar">
+      <button type="button" class="btn-secondary" id="exportBtn">バックアップ</button>
+      <button type="button" class="btn-secondary" id="importBtn">復元</button>
+      <input type="file" id="importFile" accept="application/json,.json" />
+      <span class="data-toolbar-hint">端末を替えるときはバックアップ→復元</span>
+    </div>
+
+    <footer>データはこのブラウザに保存されます（localStorage）・v1.3</footer>
   </div>
 
   <script>
     const STORAGE_KEY = "habit-tracker-v1";
+    const REMINDER_KEY = "habit-tracker-reminder";
     const DAY_LABELS = ["日", "月", "火", "水", "木", "金", "土"];
     const PRESET_COLORS = [
       "#8ECBB8", "#9EC5E8", "#F2B5D0", "#C5B3E8", "#F5CCAA",
@@ -918,11 +1056,179 @@
         delete state.goodThings[key];
       }
       saveState();
+      const historyList = document.querySelector(".history-list");
+      if (historyList) {
+        historyList.innerHTML = renderGoodThingsHistory();
+        historyList.querySelectorAll(".history-item").forEach((btn) => {
+          btn.addEventListener("click", () => {
+            viewGoodThingsKey = btn.dataset.key;
+            render();
+          });
+        });
+      }
     }
 
     function formatGoodThingsLabel(key) {
       const d = keyToDate(key);
       return `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日（${DAY_LABELS[d.getDay()]}）`;
+    }
+
+    function getGoodThingsHistoryKeys() {
+      return Object.keys(state.goodThings)
+        .filter((key) => getGoodThings(key).some((s) => s.trim()))
+        .sort((a, b) => b.localeCompare(a));
+    }
+
+    function renderGoodThingsHistory() {
+      const keys = getGoodThingsHistoryKeys();
+      if (keys.length === 0) {
+        return `<p class="history-empty">まだ過去の記録はありません</p>`;
+      }
+      return keys.map((key) => {
+        const items = getGoodThings(key).filter((s) => s.trim());
+        const preview = items.map((s) => escapeHtml(s)).join(" · ");
+        const active = key === viewGoodThingsKey ? " active" : "";
+        return `
+          <button type="button" class="history-item${active}" data-key="${key}">
+            <span class="history-date">${formatGoodThingsLabel(key)}</span>
+            <span class="history-preview">${preview}</span>
+          </button>
+        `;
+      }).join("");
+    }
+
+    function renderAddHabitSection() {
+      return `
+        <section class="section add-habit-section">
+          <div class="section-title">習慣を追加</div>
+          <form class="add-form" id="addForm">
+            <input type="text" id="habitName" placeholder="新しい習慣（例：朝のストレッチ）" maxlength="40" required />
+            <div class="color-picker" id="colorPicker" role="radiogroup" aria-label="習慣の色"></div>
+            <button type="submit" class="btn btn-primary">追加</button>
+          </form>
+        </section>
+      `;
+    }
+
+    function getReminderSettings() {
+      try {
+        const raw = localStorage.getItem(REMINDER_KEY);
+        if (raw) return JSON.parse(raw);
+      } catch (_) {}
+      return { enabled: false, hour: 19, minute: 0, lastSent: "" };
+    }
+
+    function saveReminderSettings(settings) {
+      localStorage.setItem(REMINDER_KEY, JSON.stringify(settings));
+      updateReminderStatus();
+    }
+
+    function updateReminderStatus() {
+      const el = document.getElementById("reminderStatus");
+      if (!el) return;
+      if (!("Notification" in window)) {
+        el.textContent = "このブラウザは通知に対応していません。";
+        return;
+      }
+      const s = getReminderSettings();
+      const perm = Notification.permission;
+      if (!s.enabled) {
+        el.textContent = "オフです。オンにすると毎日、設定した時刻に通知します。";
+        return;
+      }
+      if (perm === "denied") {
+        el.textContent = "通知がブロックされています。Chrome のサイト設定で許可してください。";
+        return;
+      }
+      if (perm === "granted") {
+        el.textContent = `毎日 ${String(s.hour).padStart(2, "0")}:${String(s.minute).padStart(2, "0")} に通知します。ホーム画面に追加すると届きやすくなります。`;
+        return;
+      }
+      el.textContent = "通知の許可が必要です。";
+    }
+
+    async function registerNotifyWorker() {
+      if (!("serviceWorker" in navigator)) return;
+      await navigator.serviceWorker.register("./notify-sw.js");
+    }
+
+    async function requestReminderPermission() {
+      if (!("Notification" in window)) {
+        alert("このブラウザは通知に対応していません。");
+        return false;
+      }
+      const perm = await Notification.requestPermission();
+      if (perm !== "granted") return false;
+      await registerNotifyWorker();
+      return true;
+    }
+
+    async function showReminderNotification() {
+      const body = "今日の習慣と3 Good Thingsを記録しましょう";
+      const options = { body, icon: "./icon.svg", tag: "habit-reminder", renotify: true };
+      if ("serviceWorker" in navigator) {
+        try {
+          const reg = await navigator.serviceWorker.ready;
+          await reg.showNotification("習慣トラッカー", options);
+          return;
+        } catch (_) {}
+      }
+      new Notification("習慣トラッカー", options);
+    }
+
+    async function checkReminder() {
+      const settings = getReminderSettings();
+      if (!settings.enabled || Notification.permission !== "granted") return;
+      const now = new Date();
+      const today = todayKey();
+      if (settings.lastSent === today) return;
+      const nowMins = now.getHours() * 60 + now.getMinutes();
+      const targetMins = settings.hour * 60 + settings.minute;
+      if (nowMins < targetMins || nowMins > targetMins + 4) return;
+      await showReminderNotification();
+      settings.lastSent = today;
+      saveReminderSettings(settings);
+    }
+
+    function initReminderUI() {
+      const settings = getReminderSettings();
+      const enabled = document.getElementById("reminderEnabled");
+      const time = document.getElementById("reminderTime");
+      const testBtn = document.getElementById("reminderTest");
+
+      enabled.checked = settings.enabled;
+      time.value = `${String(settings.hour).padStart(2, "0")}:${String(settings.minute).padStart(2, "0")}`;
+      updateReminderStatus();
+
+      if (settings.enabled && Notification.permission === "granted") {
+        registerNotifyWorker();
+      }
+
+      enabled.addEventListener("change", async () => {
+        const next = { ...getReminderSettings(), enabled: enabled.checked };
+        if (enabled.checked) {
+          const ok = await requestReminderPermission();
+          if (!ok) {
+            enabled.checked = false;
+            next.enabled = false;
+            alert("通知を許可するとリマインドが使えます。");
+          }
+        }
+        saveReminderSettings(next);
+      });
+
+      time.addEventListener("change", () => {
+        const [h, m] = time.value.split(":").map(Number);
+        saveReminderSettings({ ...getReminderSettings(), hour: h, minute: m, lastSent: "" });
+      });
+
+      testBtn.addEventListener("click", async () => {
+        const ok = await requestReminderPermission();
+        if (ok) await showReminderNotification();
+      });
+
+      setInterval(checkReminder, 60000);
+      checkReminder();
     }
 
     function addHabit(name, color) {
@@ -1089,6 +1395,10 @@
                   maxlength="120"
                   ${isFuture ? "disabled" : ""} />
               `).join("")}
+            </div>
+            <div class="good-things-history">
+              <div class="history-heading">過去の記録（タップで表示）</div>
+              <div class="history-list">${renderGoodThingsHistory()}</div>
             </div>
           </div>
         </section>
@@ -1356,6 +1666,13 @@
         });
       });
 
+      root.querySelectorAll(".history-item").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          viewGoodThingsKey = btn.dataset.key;
+          render();
+        });
+      });
+
       const monthNote = root.querySelector("#monthNote");
       monthNote?.addEventListener("input", () => {
         setMonthNote(viewYear, viewMonth, monthNote.value);
@@ -1371,16 +1688,20 @@
 
     function renderHabits() {
       const list = document.getElementById("habitList");
+      const addHabitSection = renderAddHabitSection();
       const goodThings = renderGoodThingsSection();
 
       if (state.habits.length === 0) {
-        list.innerHTML = goodThings + `<div class="empty">習慣を追加して、週表示のマスをクリックして○をつけましょう</div>`;
+        list.innerHTML = addHabitSection + goodThings
+          + `<div class="empty">習慣を追加して、週表示のマスをクリックして○をつけましょう</div>`;
         bindEvents(list);
+        setupAddForm();
         return;
       }
 
-      list.innerHTML = renderWeekSection() + goodThings + renderMonthSection();
+      list.innerHTML = renderWeekSection() + addHabitSection + goodThings + renderMonthSection();
       bindEvents(list);
+      setupAddForm();
     }
 
     function escapeHtml(str) {
@@ -1394,6 +1715,7 @@
 
     function initColorPicker() {
       const picker = document.getElementById("colorPicker");
+      if (!picker) return;
       picker.innerHTML = PRESET_COLORS.map((color) => `
         <button type="button" class="color-swatch${color === selectedColor ? " selected" : ""}"
           style="background:${color}" data-color="${color}"
@@ -1412,14 +1734,19 @@
       });
     }
 
-    document.getElementById("addForm").addEventListener("submit", (e) => {
-      e.preventDefault();
-      const name = document.getElementById("habitName");
-      if (!name.value.trim()) return;
-      addHabit(name.value, selectedColor);
-      name.value = "";
-      name.focus();
-    });
+    function setupAddForm() {
+      initColorPicker();
+      const form = document.getElementById("addForm");
+      if (!form) return;
+      form.addEventListener("submit", (e) => {
+        e.preventDefault();
+        const name = document.getElementById("habitName");
+        if (!name.value.trim()) return;
+        addHabit(name.value, selectedColor);
+        name.value = "";
+        name.focus();
+      });
+    }
 
     document.getElementById("exportBtn").addEventListener("click", exportData);
     document.getElementById("importBtn").addEventListener("click", () => {
@@ -1431,20 +1758,8 @@
       e.target.value = "";
     });
 
-    initColorPicker();
-    clearStaleCache();
+    initReminderUI();
     render();
-
-    async function clearStaleCache() {
-      if ("serviceWorker" in navigator) {
-        const regs = await navigator.serviceWorker.getRegistrations();
-        await Promise.all(regs.map((reg) => reg.unregister()));
-      }
-      if ("caches" in window) {
-        const keys = await caches.keys();
-        await Promise.all(keys.map((key) => caches.delete(key)));
-      }
-    }
   </script>
 </body>
 </html>
