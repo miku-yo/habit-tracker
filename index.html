@@ -110,20 +110,23 @@
     }
 
     .color-picker {
-      display: flex;
-      gap: 8px;
-      align-items: center;
-      flex-wrap: wrap;
+      display: grid;
+      grid-template-columns: repeat(9, minmax(0, 1fr));
+      gap: 6px;
+      width: 100%;
+      max-width: 360px;
     }
 
     .color-swatch {
-      width: 30px;
-      height: 30px;
+      width: 100%;
+      aspect-ratio: 1;
+      max-width: 32px;
+      max-height: 32px;
+      justify-self: center;
       border-radius: 50%;
       border: 2px solid transparent;
       cursor: pointer;
       padding: 0;
-      flex-shrink: 0;
     }
 
     .color-swatch:hover { opacity: 0.85; }
@@ -613,41 +616,6 @@
 
     .good-thing-input::placeholder { color: #aaa; }
 
-    .mobile-hint[hidden] {
-      display: none !important;
-    }
-
-    .mobile-hint {
-      display: flex;
-      align-items: flex-start;
-      gap: 10px;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 12px 14px;
-      margin-bottom: 20px;
-      font-size: 0.82rem;
-      line-height: 1.5;
-    }
-
-    .mobile-hint strong { color: var(--accent); }
-
-    .mobile-hint-close {
-      background: none;
-      border: none;
-      color: var(--muted);
-      cursor: pointer;
-      font-size: 1.1rem;
-      line-height: 1;
-      padding: 8px;
-      min-width: 36px;
-      min-height: 36px;
-      border-radius: 6px;
-      flex-shrink: 0;
-    }
-
-    .mobile-hint-close:hover { color: var(--text); background: var(--bg); }
-
     .panel-scroll {
       overflow-x: auto;
       -webkit-overflow-scrolling: touch;
@@ -689,8 +657,7 @@
 
       .add-form { flex-direction: column; }
       .add-form input[type="text"] { min-width: 0; width: 100%; }
-      .color-picker { justify-content: center; width: 100%; gap: 10px; }
-      .color-swatch { width: 28px; height: 28px; }
+      .color-picker { max-width: none; gap: 5px; }
       .btn-primary { width: 100%; }
 
       .section-head {
@@ -762,11 +729,6 @@
         <p class="subtitle">習慣の記録、月ごとの目標、3 Good Things</p>
       </div>
     </header>
-
-    <div class="mobile-hint" id="mobileHint" hidden>
-      <div id="mobileHintText"></div>
-      <button type="button" class="mobile-hint-close" id="dismissHint" aria-label="閉じる">×</button>
-    </div>
 
     <div class="data-toolbar">
       <button type="button" class="btn-secondary" id="exportBtn">バックアップ</button>
@@ -1467,56 +1429,15 @@
     });
 
     initColorPicker();
-    initMobileHint();
     initServiceWorker();
     render();
-
-    function initMobileHint() {
-      const hint = document.getElementById("mobileHint");
-      const hintText = document.getElementById("mobileHintText");
-      const dismiss = document.getElementById("dismissHint");
-      const isStandalone = window.matchMedia("(display-mode: standalone)").matches
-        || window.navigator.standalone === true;
-      const isHttp = location.protocol === "http:" || location.protocol === "https:";
-      const isLocal = /^(localhost|127\.0\.0\.1)$/.test(location.hostname)
-        || /^192\.168\.|^10\.|^172\.(1[6-9]|2\d|3[01])\./.test(location.hostname);
-      const isPublic = isHttp && !isLocal;
-      const dismissed = localStorage.getItem("habit-tracker-hint-dismissed");
-
-      if (dismissed) return;
-
-      if (isPublic) {
-        hintText.innerHTML = `
-          <strong>外出先でも使えます</strong><br />
-          ホーム画面に追加しておけば、インターネット経由でいつでも記録できます。別の端末にデータを移すときは「バックアップ」→「復元」を使ってください。
-        `;
-        hint.hidden = false;
-      } else if (location.protocol === "file:") {
-        hintText.innerHTML = `
-          <strong>外出先から使うには</strong><br />
-          フォルダ内の <code>setup-github-pages.cmd</code> を実行すると、固定 URL（<code>https://あなたのID.github.io/habit-tracker/</code>）で公開できます。
-        `;
-        hint.hidden = false;
-      } else if (isLocal && window.innerWidth <= 720) {
-        hintText.innerHTML = `
-          <strong>スマホで使うとき</strong><br />
-          同じ Wi-Fi で <code>start-server.cmd</code> の URL を開いてください。外出先からも使う場合は <code>deploy-public.cmd</code> を参照してください。
-        `;
-        hint.hidden = false;
-      }
-
-      dismiss?.addEventListener("click", (e) => {
-        e.preventDefault();
-        hint.hidden = true;
-        hint.style.display = "none";
-        localStorage.setItem("habit-tracker-hint-dismissed", "1");
-      });
-    }
 
     function initServiceWorker() {
       if (!("serviceWorker" in navigator)) return;
       if (location.protocol === "file:") return;
-      navigator.serviceWorker.register("./sw.js").catch(() => {});
+      navigator.serviceWorker.register("./sw.js").then((reg) => {
+        reg.update();
+      }).catch(() => {});
     }
   </script>
 </body>
