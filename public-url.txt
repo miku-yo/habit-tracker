@@ -1,0 +1,4 @@
+﻿https://miku-yo.github.io/habit-tracker/
+
+※ 公開前に GitHub で Pages を「GitHub Actions」に設定してください。
+  https://github.com/miku-yo/habit-tracker/settings/pages
